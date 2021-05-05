@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from bs4 import BeautifulSoup
-import requests
+import requests, csv
 
 #Getting news from BdNews24
 BDNews24_r = requests.get('https://bdnews24.com/').text
@@ -20,55 +20,82 @@ for news in BDNews24_soup2.find_all('div', class_ = 'text'):
 BDNews24_rep.close()
 
 
-# #Getting news from Dhaka Tribune 
-# DhakaTribune_r = requests.get('https://www.dhakatribune.com/').text
-# DhakaTribune_soup2 = BeautifulSoup(DhakaTribune_r, 'lxml')
+#Getting news from Prothom Alo
+# ProthomAlo_r = requests.get('https://en.prothomalo.com/').text
+# ProthomAlo_soup = BeautiulSoup(ProthomAlo_r, 'lxml')
+# # ProthomAlo_news3 = ProthomAlo_soup.find( class_ = 'text').a.text
+# ProthomAlo_rep = open('newsheadlines.txt','a')
+# ProthomAlo_rep.write("News headline from prothmalo")
+# ProthomAlo_rep.write("")
 
-# DhakaTribune_rep = open('newsheadlines.txt','a')
-# DhakaTribune_rep.write("News headline from dhakatribune")
-# DhakaTribune_rep.write("")
-# DhakaTri = []
-# DhakaTri1 = []
-# DhakaTri2 = []
-# DhakaTri.extend(DhakaTri1)
-# DhakaTri.extend(DhakaTri2)
-
-# cname : str =  "single-news-content"
-# for news in DhakaTribune_soup2.find_all('div', class_ = 'single-news-content'):
-#     nz =news.a.single-news-cont 
-#     print(nz)
-#     DhakaTribune_rep.write(nz)
-#     DhakaTri.append(nz1)
-# for news in DhakaTribune_soup2.find_all('div', class_ = 'report-title'):
-#     nz = news.a.report-title
-#     print(nz)
-#     DhakaTribune_rep.write(nz)
-#     DhakaTri1.append(nz)
-
-# for news in DhakaTribune_soup2.find_all('div', class_ ='dhaka_banner-content'):
-#     nz = news.a.dhaka_banner-content
-#     DhakaTribune_rep.write(nz)
-#     DhakaTri2.append(nz)
-
-# DhakaTribune_rep.close()
-
-# #Getting news from Prothom Alo
-ProthomAlo_r = requests.fget('https://en.prothomalo.com/').text
-ProthomAlo_soup = BeautiulSoup(ProthomAlo_r, 'lxml')
-# ProthomAlo_news3 = ProthomAlo_soup.find( class_ = 'text').a.text
-ProthomAlo_rep = open('newsheadlines.txt','a')
-ProthomAlo_rep.write("News headline from prothmalo")
-ProthomAlo_rep.write("")
+prothomAlo_URL = "https://en.prothomalo.com/"
+prothomAlo_r = requests.get(prothomAlo_URL)
+prothomAlo_soup = BeautifulSoup(prothomAlo_r.content, 'html5lib') # If this line causes an error, run 'pip install html5lib' or install html5lib
 Palo = [] 
 
+main = prothomAlo_soup.find('div', attrs = {'class' : 'fourteenStories3Ad1Widget-m__wrapper__14yBW'})
+h2 = prothomAlo_soup.find('div', attrs = {'class' : 'headline-title newsHeadline-m__title__2_I3j newsHeadline-m__bigSize__2doEw'})
 
-for news in ProthomAlo_soup.find_all('h2',style='color:'):
-    news3 = news.a.text
-    print(news3)
+for news in prothomAlo_soup.find_all('a', attrs = {'class' :'newsHeadline-m__title-link__1puEG'}):
+    news = news.text
+    print(news)
     print()
-    ProthomAlo_rep.write(news3)
-    Palo.append(news3)
-ProthomAlo_rep.close()
+    Palo.append(news)
+
+
+
+tds_URL = "https://www.thedailystar.net/bangla/"
+tds_r = requests.get(tds_URL)
+tds_soup = BeautifulSoup(tds_r.content, 'html5lib') # If this line causes an error, run 'pip install html5lib' or install html5lib
+tds_news = []
+
+for news in tds_soup.findAll('div', attrs = {'class':'highlight-text'}) :
+
+    news = news.h1.text
+    print(news)
+    print()
+    tds_news.append(news)
+
+
+morehighlight = tds_soup.find('div', attrs = {'class':'more-highlight'})
+
+for news in morehighlight.findAll('div', attrs = {'class':'two-50'}) :
+    
+    news = news.h3.text
+    print(news)
+    print()
+    tds_news.append(news)
+
+for news in morehighlight.findAll('div', attrs = {'class':'three-33 margin-bottom-zero'}) :
+    
+    news = news.h4.text
+    print(news)
+    print()
+    tds_news.append(news)
+
+
+# leftside = tds_soup.find('h5', attrs = {'class':'list-border'})
+for news in tds_soup.findAll('h5') :
+    
+    news = news.a.text
+    print(news)
+    print()
+    tds_news.append(news)
+
+
+dt_URL = "https://bangla.dhakatribune.com/"
+dt_r = requests.get(dt_URL)
+dt_soup = BeautifulSoup(dt_r.content, 'html5lib') # If this line causes an error, run 'pip install html5lib' or install html5lib
+dt_news = []
+
+singlenews = dt_soup.find( 'ul', attrs = {'class': 'just_in_news'} )
+for news in dt_soup.findAll( 'div', attrs = {'class': 'dt-strem-cont'}) :
+    
+    news = news.h2.text
+    print(news)
+    print()
+    dt_news.append(news)
+
 
 
 def bdNews24(req):
@@ -78,12 +105,11 @@ def bdNews24(req):
     return render(req, 'news/index.html', {'post':obj, 'name' : name})
 
 
-def dhakaTribune(req):
+def theDailyStar(req):
 
-    name = "Dhaka Tribune"
-    obj = DhakaTri
+    name = "The Daily Star"
+    obj = tds_news
     return render(req, 'news/index.html', {'post' : obj, 'name' : name})
-
 
 def prothomAlo(req):
     name = "Prothom Alo"
@@ -91,6 +117,13 @@ def prothomAlo(req):
     return render(req, 'news/index.html', {'post' : obj, 'name' : name})
 
 
+def dhakaTribune(req):
+
+    name = "Dhaka Tribune"
+    obj = dt_news
+    return render(req, 'news/index.html', {'post' : obj, 'name' : name})
+
+
 def home(request):
-    txt="news" 
+    txt = "news" 
     return HttpResponse(txt)
